@@ -1,4 +1,4 @@
-# Automated-build-and-deployment-with-BizTalk-Deployment-Framework
+# Automated build and deployment with BizTalk Deployment Framework
 [BizTalk Deployment Framework](https://biztalkdeployment.codeplex.com/) is one of those pearls for BizTalk developers, allowing complex BizTalk solutions to be deployed easily, having all our artifacts and dependencies together in one MSI. To make life even better for us, we can also automate the process of building and deploying these BTDF MSI's by using PowerShell. This especially comes in handy once we start having large projects with many BizTalk applications, where we would have to spend a lot of time manually running all these MSI's.
 
 ## Description
