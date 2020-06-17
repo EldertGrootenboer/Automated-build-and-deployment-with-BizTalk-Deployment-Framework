@@ -35,3 +35,6 @@ DeployBizTalkApplications $newApplications $newVersions $newInstallersDirectory
 
 # Wait for user to exit
 WaitForKeyPress
+
+
+

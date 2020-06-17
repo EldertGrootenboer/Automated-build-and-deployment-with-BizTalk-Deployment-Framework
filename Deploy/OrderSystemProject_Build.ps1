@@ -10,3 +10,6 @@ BuildAndCreateBizTalkInstallers $applications $projectName
 
 # Wait for user to exit
 WaitForKeyPress
+
+
+
