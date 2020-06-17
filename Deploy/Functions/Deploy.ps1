@@ -72,4 +72,3 @@ function DeployBizTalkApplication([string]$application, [string]$version) {
         Write-Host "$application not deployed successfully" -ForegroundColor Red
     }
 }
-
