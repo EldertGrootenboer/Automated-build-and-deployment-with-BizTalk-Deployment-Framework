@@ -7,10 +7,10 @@ $oldVersions = @("1.0.0", "1.0.0", "1.0.0")
 $newVersions = @("1.0.0", "1.0.0", "1.0.0")
 
 # Import custom functions
-. .\Functions_Deploy.ps1
-. .\Functions_Undeploy.ps1
-. .\Functions_Install.ps1
-. .\Functions_Uninstall.ps1
+. "$PsScriptRoot\Functions\Deploy.ps1"
+. "$PsScriptRoot\Functions\Undeploy.ps1"
+. "$PsScriptRoot\Functions\Install.ps1"
+. "$PsScriptRoot\Functions\Uninstall.ps1"
 
 # Undeploy the applications
 UndeployBizTalkApplications $oldApplications $oldVersions
