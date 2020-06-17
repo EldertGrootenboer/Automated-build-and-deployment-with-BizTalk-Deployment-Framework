@@ -17,58 +17,66 @@ foreach ($setting in $settings) {
     if ($setting.'Name;Value'.Split(";")[0].Trim() -eq "environmentSettingsFileName") { $environmentSettingsFileName = $setting.'Name;Value'.Split(";")[1].Trim() }
 }
 
-# Deploy applications
-function DeployBizTalkApplications([string[]]$applicationsInOrderOfDeployment, [string[]]$versions, [string]$scriptsDirectory) {
-    # Check which restarts should be done
-    $resetIIS = CheckIfIISShouldBeReset
-    $restartHostInstances = CheckIfHostinstancesShouldBeRestarted
+# Deploy BizTalk Application(s)
+function Deploy-BizTalkApplication {
+    [CmdletBinding(ConfirmImpact = 'Medium', SupportsShouldProcess, DefaultParameterSetName = 'BySet')]
+    Param(
+        [Parameter(Mandatory, ParameterSetName = 'BySet')]
+        [string[]] $ApplicationsInOrderOfDeployment,
 
-    # Loop through applications to be deployed
-    for ($index = 0; $index -lt $applicationsInOrderOfDeployment.Length; $index++) {
-        # Deploy application
-        DeployBizTalkApplication $applicationsInOrderOfDeployment[$index] $versions[$index]
-    }
+        [Parameter(Mandatory, ParameterSetName = 'BySet')]
+        [string[]] $Versions,
 
-    # Get SQL files to be executed
-    $sqlFiles = GetSQLFiles $scriptsDirectory
+        [Parameter(Mandatory, ParameterSetName = 'BySet')]
+        [string] $ScriptsDirectory,
 
-    # Loop through SQL files
-    foreach ($sqlFile in $sqlFiles) {
-        # Execute SQL file
-        ExecuteSqlFile $sqlFile
-    }
+        [Parameter(Mandatory, ParameterSetName = 'ByApplication')]
+        [string] $Application,
 
-    # Get registry files to be imported
-    $registryFiles = GetRegistryFiles $scriptsDirectory
+        [Parameter(Mandatory, ParameterSetName = 'ByApplication')]
+        [string] $Version
+    )
 
-    # Loop through registry files
-    foreach ($registryFile in $registryFiles) {
-        # Import registry file
-        ImportRegistryFile $registryFile
-    }
+    Process {
+        switch ($PSCmdlet.ParameterSetName) {
 
-    # Do restarts
-    if ($resetIIS) {
-        DoIISReset
-    }
-    if ($restartHostInstances) {
-        DoHostInstancesRestart
-    }
-}
+            'BySet' {
+                # Loop through applications to be deployed
+                for ($index = 0; $index -lt $ApplicationsInOrderOfDeployment.Length; $index++) {
+                    # Deploy application
+                    Deploy-BizTalkApplication -Application $ApplicationsInOrderOfDeployment[$index] -Version $Versions[$index]
+                }
 
-# Deploy a BizTalk application
-function DeployBizTalkApplication([string]$application, [string]$version) {
-    # Set log file
-    $logFileName = "$programFilesDirectory\$application$productNameSuffix\$version\DeployResults\DeployResults.txt"
+                # SQL files to be executed
+                Get-SqlFile $ScriptsDirectory | Invoke-SqlFile
 
-    # Execute deployment
-    $exitCode = (Start-Process -FilePath "$env:windir\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe" -ArgumentList "/p:DeployBizTalkMgmtDB=$deployBizTalkMgmtDB;Configuration=Server;SkipUndeploy=true /target:Deploy /l:FileLogger,Microsoft.Build.Engine;logfile=""$programFilesDirectory\$application$productNameSuffix\$version\DeployResults\DeployResults.txt"" ""$programFilesDirectory\$application$productNameSuffix\$version\Deployment\Deployment.btdfproj"" /p:ENV_SETTINGS=""$programFilesDirectory\$application$productNameSuffix\$version\Deployment\EnvironmentSettings\$environmentSettingsFileName.xml""" -Wait -Passthru).ExitCode
+                # Registry files to be imported
+                Get-RegistryFile $ScriptsDirectory | Import-RegistryFile
 
-    # Check if deployment was successful
-    if ($exitCode -eq 0 -and (Select-String -Path $logFileName -Pattern "0 Error(s)" -Quiet) -eq "true") {
-        Write-Host "$application deployed successfully" -ForegroundColor Green
-    }
-    else {
-        Write-Host "$application not deployed successfully" -ForegroundColor Red
+                # Do restarts
+                Restart-IIS
+                Restart-HostInstances
+            }
+
+            'ByApplication' {
+
+                if ($PSCmdlet.ShouldProcess("$Application ($Version)")) {
+
+                    # Set log file
+                    $logFileName = "$programFilesDirectory\$Application$productNameSuffix\$Version\DeployResults\DeployResults.txt"
+
+                    # Execute deployment
+                    $exitCode = (Start-Process -WindowStyle Hidden -FilePath "$env:windir\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe" -ArgumentList "/p:DeployBizTalkMgmtDB=$deployBizTalkMgmtDB;Configuration=Server;SkipUndeploy=true /target:Deploy /l:FileLogger,Microsoft.Build.Engine;logfile=""$programFilesDirectory\$Application$productNameSuffix\$Version\DeployResults\DeployResults.txt"" ""$programFilesDirectory\$Application$productNameSuffix\$Version\Deployment\Deployment.btdfproj"" /p:ENV_SETTINGS=""$programFilesDirectory\$Application$productNameSuffix\$Version\Deployment\EnvironmentSettings\$environmentSettingsFileName.xml""" -Wait -Passthru).ExitCode
+
+                    # Check if deployment was successful
+                    if ($exitCode -eq 0 -and (Select-String -Path $logFileName -Pattern "0 Error(s)" -Quiet) -eq "true") {
+                        Write-Information "$Application ($Version) deployed successfully"
+                    }
+                    else {
+                        Write-Error "$Application ($Version) could not be deployed successfully"
+                    }
+                }
+            }
+        }
     }
 }

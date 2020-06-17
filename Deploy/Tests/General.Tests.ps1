@@ -1,18 +1,52 @@
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path) -replace '\.Tests\.', '.'
 . "$PsScriptRoot\..\Functions\$sut"
 
-Describe "General" {
+Describe "Script $sut" {
 
-    Context 'function WaitForKeyPress' { It 'needs testing' { } }
-    Context 'function ClearLogFiles' { It 'needs testing' { } }
-    Context 'function CheckIfIISShouldBeReset' { It 'needs testing' { } }
-    Context 'function CheckIfHostinstancesShouldBeRestarted' { It 'needs testing' { } }
-    Context 'function GetYesNoAnswer' { It 'needs testing' { } }
-    Context 'function DoIISReset' { It 'needs testing' { } }
-    Context 'function DoHostInstancesRestart' { It 'needs testing' { } }
-    Context 'function ExecuteSqlFile' { It 'needs testing' { } }
-    Context 'function ImportRegistryFile' { It 'needs testing' { } }
-    Context 'function GetRegistryFiles' { It 'needs testing' { } }
-    Context 'function GetSQLFiles' { It 'needs testing' { } }
-    Context 'function GetMsiFiles' { It 'needs testing' { } }
+    Context 'function Restart-IIS' { It 'needs testing' { } }
+
+    Context 'function Restart-HostInstances' { It 'needs testing' { } }
+
+    Context 'function Invoke-SqlFile' { It 'needs testing' { } }
+
+    Context 'function Import-RegistryFile' { It 'needs testing' { } }
+
+    Context 'function Get-RegistryFile' {
+
+        BeforeAll {
+            New-Item -ItemType File -Path "$TestDrive\Dummy.reg"
+            New-Item -ItemType File -Path "$TestDrive\Folder\Dummy.reg" -Force
+        }
+
+        It 'finds a *.reg file' {
+            Get-RegistryFile -Path $TestDrive |
+                Should HaveCount 1
+        }
+    }
+
+    Context 'function Get-SqlFile' {
+
+        BeforeAll {
+            New-Item -ItemType File -Path "$TestDrive\Dummy.sql"
+            New-Item -ItemType File -Path "$TestDrive\Folder\Dummy.sql" -Force
+        }
+
+        It 'finds a *.sql file' {
+            Get-SqlFile -Path $TestDrive |
+                Should HaveCount 1
+        }
+    }
+
+    Context 'function Get-MsiFile' {
+
+        BeforeAll {
+            New-Item -ItemType File -Path "$TestDrive\Dummy.msi"
+            New-Item -ItemType File -Path "$TestDrive\Folder\Dummy.msi" -Force
+        }
+
+        It 'finds a *.msi file' {
+            Get-MsiFile -Path $TestDrive |
+                Should HaveCount 1
+        }
+    }
 }

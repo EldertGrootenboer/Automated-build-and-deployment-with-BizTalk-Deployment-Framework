@@ -1,8 +1,22 @@
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path) -replace '\.Tests\.', '.'
 . "$PsScriptRoot\..\Functions\$sut"
 
-Describe "Uninstall" {
+Describe "Script $sut" {
 
-    Context 'function UninstallBizTalkApplications' { It 'needs testing' { } }
-    Context 'function UninstallBizTalkApplication' { It 'needs testing' { } }
+    Context 'function Uninstall-BizTalkApplication' {
+
+        BeforeAll {
+            New-Item -ItemType File -Path "$TestDrive\Dummy.msi"
+        }
+
+        It 'accepts a Path' {
+            Uninstall-BizTalkApplication -WhatIf `
+                -Path $TestDrive
+        }
+
+        It 'accepts File(s)' {
+            Uninstall-BizTalkApplication -WhatIf `
+                -File "$TestDrive\Dummy.msi"
+        }
+    }
 }

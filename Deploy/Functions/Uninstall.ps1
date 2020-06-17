@@ -1,33 +1,46 @@
 # Import general helpers using dot operator
 . "$PsScriptRoot\General.ps1"
 
-# Uninstall applications
-function UninstallBizTalkApplications($msiDirectory) {
-    # Get MSI's to be installed
-    $files = GetMsiFiles $msiDirectory
+# Uninstall application(s)
+function Uninstall-BizTalkApplication {
+    [CmdletBinding(ConfirmImpact = 'Medium', SupportsShouldProcess, DefaultParameterSetName = 'ByPath')]
+    Param(
+        [Parameter(ParameterSetName = 'ByPath')]
+        [string] $Path,
 
-    # Loop through MSI files
-    foreach ($file in $files) {
-        UninstallBizTalkApplication $file
-    }
-}
+        [Parameter(ParameterSetName = 'ByFile', ValueFromPipeline)]
+        [System.IO.FileInfo] $File
+    )
 
-# Uninstall BizTalk application
-function UninstallBizTalkApplication([System.IO.FileInfo]$fileInfo) {
-    # Get application name
-    $applicationName = $fileInfo.BaseName.Split("-")[0]
+    Process {
+        switch ($PSCmdlet.ParameterSetName) {
 
-    # Set installer path
-    $msiPath = $fileInfo.FullName
+            'ByPath' {
+                $files = Get-MsiFile $Path
+                $files | Uninstall-BizTalkApplication
+            }
 
-    # Uninstall application
-    $exitCode = (Start-Process -FilePath "msiexec.exe" -ArgumentList "/x ""$msiPath"" /qn" -Wait -Passthru).ExitCode
+            'ByFile' {
 
-    # Check if uninstalling was successful
-    if ($exitCode -eq 0) {
-        Write-Host "$applicationName uninstalled successfully" -ForegroundColor Green
-    }
-    else {
-        Write-Host "$applicationName not uninstalled successfully" -ForegroundColor Red
+                if ($PSCmdlet.ShouldProcess($File.Name)) {
+                    # Get application name
+                    $applicationName = $File.BaseName.Split("-")[0]
+
+                    # Set installer path
+                    $msiPath = $File.FullName
+
+                    # Uninstall application
+                    $exitCode = (Start-Process -WindowStyle Hidden -FilePath "msiexec.exe" -ArgumentList "/x ""$msiPath"" /qn" -Wait -PassThru).ExitCode
+
+                    # Check if uninstalling was successful
+                    if ($exitCode -eq 0) {
+                        Write-Information "$applicationName uninstalled successfully"
+                    }
+                    else {
+                        Write-Error "$applicationName not uninstalled successfully"
+                    }
+                }
+            }
+        }
     }
 }
