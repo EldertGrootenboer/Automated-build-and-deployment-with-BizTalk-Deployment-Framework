@@ -1,5 +1,5 @@
 # Import custom functions
-. .\Functions_General.ps1
+. "$PsScriptRoot\General.ps1"
 
 # Load parameters
 $settings = Import-Csv Settings_DeploymentEnvironment.csv

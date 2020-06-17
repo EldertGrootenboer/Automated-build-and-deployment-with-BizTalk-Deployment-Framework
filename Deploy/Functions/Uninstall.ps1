@@ -1,5 +1,5 @@
 # Import general helpers using dot operator
-. .\Functions_General.ps1
+. "$PsScriptRoot\General.ps1"
 
 # Uninstall applications
 function UninstallBizTalkApplications($msiDirectory) {
