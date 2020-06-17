@@ -11,27 +11,48 @@ foreach ($setting in $settings) {
     if ($setting.'Name;Value'.Split(";")[0].Trim() -eq "deployBizTalkMgmtDB") { $deployBizTalkMgmtDB = $setting.'Name;Value'.Split(";")[1].Trim() }
 }
 
-# Undeploy applications
-function UndeployBizTalkApplications([string[]]$applicationsInOrderOfUndeployment, [string[]]$versions) {
-    # Loop through applications to be undeployed
-    for ($index = 0; $index -lt $applicationsInOrderOfUndeployment.Length; $index++) {
-        # Deploy application
-        UndeployBizTalkApplication $applicationsInOrderOfUndeployment[$index] $versions[$index]
-    }
+# Undeploy BizTalk Application(s)
+function Undeploy-BizTalkApplication {
+    [CmdletBinding(ConfirmImpact = 'Medium', SupportsShouldProcess, DefaultParameterSetName = 'BySet')]
+    Param(
+        [Parameter(Mandatory, ParameterSetName = 'BySet')]
+        [string[]] $ApplicationsInOrderOfUndeployment,
 
-    # Return number of errors
-    return $errorCount
-}
+        [Parameter(Mandatory, ParameterSetName = 'BySet')]
+        [string[]] $Versions,
 
-# Undeploy a BizTalk application
-function UndeployBizTalkApplication([string]$application, [string]$version) {
-    # Execute undeployment
-    $exitCode = (Start-Process -FilePath "$env:windir\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe" -ArgumentList """$programFilesDirectory\$application$productNameSuffix\$version\Deployment\Deployment.btdfproj"" /t:Undeploy /p:DeployBizTalkMgmtDB=$deployBizTalkMgmtDB /p:Configuration=Server" -Wait -Passthru).ExitCode
+        [Parameter(Mandatory, ParameterSetName = 'ByApplication')]
+        [string] $Application,
 
-    if ($exitCode -eq 0) {
-        Write-Host "$application undeployed successfully" -ForegroundColor Green
-    }
-    else {
-        Write-Host "$application not undeployed successfully" -ForegroundColor Red
+        [Parameter(Mandatory, ParameterSetName = 'ByApplication')]
+        [string] $Version
+    )
+
+    Process {
+        switch ($PSCmdlet.ParameterSetName) {
+
+            'BySet' {
+                # Loop through applications to be undeployed
+                for ($index = 0; $index -lt $ApplicationsInOrderOfUndeployment.Length; $index++) {
+                    # Deploy application
+                    Undeploy-BizTalkApplication -Application $ApplicationsInOrderOfUndeployment[$index] -Version $Versions[$index]
+                }
+            }
+
+            'ByApplication' {
+
+                if ($PSCmdlet.ShouldProcess("$Application ($Version)")) {
+                    # Execute undeployment
+                    $exitCode = (Start-Process -WindowStyle Hidden -FilePath "$env:windir\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe" -ArgumentList """$programFilesDirectory\$Application$productNameSuffix\$Version\Deployment\Deployment.btdfproj"" /t:Undeploy /p:DeployBizTalkMgmtDB=$deployBizTalkMgmtDB /p:Configuration=Server" -Wait -Passthru).ExitCode
+
+                    if ($exitCode -eq 0) {
+                        Write-Information "$Application ($Version) undeployed successfully"
+                    }
+                    else {
+                        Write-Error "$Application ($Version) not undeployed successfully"
+                    }
+                }
+            }
+        }
     }
 }

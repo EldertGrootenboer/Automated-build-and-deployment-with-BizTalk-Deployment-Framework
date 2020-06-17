@@ -11,45 +11,55 @@ foreach ($setting in $settings) {
     if ($setting.'Name;Value'.Split(";")[0].Trim() -eq "productNameSuffix") { $productNameSuffix = $setting.'Name;Value'.Split(";")[1].TrimEnd() }
 }
 
-# Install applications
-function InstallBizTalkApplications([string]$msiDirectory) {
-    # Clear log files
-    ClearLogFiles $msiDirectory
+# Install application(s)
+function Install-BizTalkApplication {
+    [CmdletBinding(ConfirmImpact = 'Medium', SupportsShouldProcess, DefaultParameterSetName = 'ByPath')]
+    Param(
+        [Parameter(ParameterSetName = 'ByPath')]
+        [string] $Path,
 
-    # Get MSI's to be installed
-    $files = GetMsiFiles $msiDirectory
+        [Parameter(ParameterSetName = 'ByFile', ValueFromPipeline)]
+        [System.IO.FileInfo] $File
+    )
 
-    # Loop through MSI files
-    foreach ($file in $files) {
-        # Install application
-        InstallBizTalkApplication $file
-    }
-}
+    Process {
+        switch ($PSCmdlet.ParameterSetName) {
 
-# Install BizTalk application
-function InstallBizTalkApplication([System.IO.FileInfo]$fileInfo) {
-    # Get application name and version
-    # We assume msi file name is in the format ApplicationName-Version
-    $application = $fileInfo.BaseName.Split("-")[0]
-    $version = $fileInfo.BaseName.Split("-")[1]
+            'ByPath' {
 
-    # Directory where MSI resides
-    $msiDirectory = $fileInfo.Directory
+                $files = Get-MsiFile $Path
+                $files | Install-BizTalkApplication
+            }
 
-    # Set log name
-    $logFileName = "$msiDirectory\$application.log"
+            'ByFile' {
 
-    # Set installer path
-    $msiPath = $fileInfo.FullName
+                if ($PSCmdlet.ShouldProcess($File.Name)) {
+                    # Get application name and version
+                    # We assume msi file name is in the format ApplicationName-Version
+                    $application = $File.BaseName.Split("-")[0]
+                    $version = $File.BaseName.Split("-")[1]
 
-    # Install application
-    Start-Process -FilePath "msiexec.exe" -ArgumentList "/i ""$msiPath"" /passive /log ""$logFileName"" INSTALLDIR=""$programFilesDirectory\$application$productNameSuffix\$version""" -Wait -Passthru | Out-Null
+                    # Directory where MSI resides
+                    $msiDirectory = $File.Directory
 
-    # Check if installation was successful
-    if ((Select-String -Path $logFileName -Pattern "success or error status: 0" -Quiet) -eq "true") {
-        Write-Host "$application installed successfully" -ForegroundColor Green
-    }
-    else {
-        Write-Host "$application not installed successfully" -ForegroundColor Red
+                    # Set log name
+                    $logFileName = "$msiDirectory\$application.log"
+
+                    # Set installer path
+                    $msiPath = $File.FullName
+
+                    # Install application
+                    Start-Process -WindowStyle Hidden -FilePath "msiexec.exe" -ArgumentList "/i ""$msiPath"" /quiet /log ""$logFileName"" INSTALLDIR=""$programFilesDirectory\$application$productNameSuffix\$version""" -Wait -Passthru | Out-Null
+
+                    # Check if installation was successful
+                    if ((Select-String -Path $logFileName -Pattern "success or error status: 0" -Quiet) -eq "true") {
+                        Write-Information "$applicationName uninstalled successfully"
+                    }
+                    else {
+                        Write-Error "$applicationName not uninstalled successfully"
+                    }
+                }
+            }
+        }
     }
 }

@@ -1,8 +1,21 @@
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path) -replace '\.Tests\.', '.'
 . "$PsScriptRoot\..\Functions\$sut"
 
-Describe "Deploy" {
+Describe "Script $sut" {
 
-    Context 'function DeployBizTalkApplications' { It 'needs testing' { } }
-    Context 'function DeployBizTalkApplication' { It 'needs testing' { } }
+    Context 'function Deploy-BizTalkApplication' {
+
+        It 'accepts a ordered set of applications' {
+            Deploy-BizTalkApplication -WhatIf `
+                -ApplicationsInOrderOfDeployment @('Contoso.OrderSystem.Orders', 'Contoso.OrderSystem.Invoices', 'Contoso.OrderSystem.Payments') `
+                -Versions @('1.1.0', '1.1.0', '1.1.0') `
+                -ScriptsDirectory $TestDrive
+        }
+
+        It 'accepts a single application' {
+            Deploy-BizTalkApplication -WhatIf `
+                -Application 'Contoso.OrderSystem.Orders' `
+                -Version '1.1.0'
+        }
+    }
 }
