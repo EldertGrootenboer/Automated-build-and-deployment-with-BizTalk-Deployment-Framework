@@ -70,4 +70,3 @@ function BuildBizTalkMsi([string]$application, [string]$project) {
     # Copy installer
     copy "$projectsDirectory\$application\Deployment\bin\Release\*.msi" "$installersOutputDirectory"
 }
-

@@ -31,4 +31,3 @@ function UninstallBizTalkApplication([System.IO.FileInfo]$fileInfo) {
         Write-Host "$applicationName not uninstalled successfully" -ForegroundColor Red
     }
 }
-

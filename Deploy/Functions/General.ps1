@@ -91,4 +91,3 @@ function GetMsiFiles([string]$directory) {
     # Get MSI files
     return Get-ChildItem "$directory" -Filter *.msi
 }
-

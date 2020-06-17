@@ -53,4 +53,3 @@ function InstallBizTalkApplication([System.IO.FileInfo]$fileInfo) {
         Write-Host "$application not installed successfully" -ForegroundColor Red
     }
 }
-

@@ -35,4 +35,3 @@ function UndeployBizTalkApplication([string]$application, [string]$version) {
         Write-Host "$application not undeployed successfully" -ForegroundColor Red
     }
 }
-
