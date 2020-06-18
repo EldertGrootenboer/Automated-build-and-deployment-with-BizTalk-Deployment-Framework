@@ -37,8 +37,8 @@ Once the MSI's have been created we can copy them to our BizTalk server, and sta
 ```powershell
 
 # Project specific settings
-$oldInstallersDirectory = $PsScriptRoot
-$newInstallersDirectory = $PsScriptRoot
+$oldInstallersDirectory = $PsScriptRoot # current script folder
+$newInstallersDirectory = $PsScriptRoot # current script folder
 $newApplications = @('Contoso.OrderSystem.Orders', 'Contoso.OrderSystem.Invoices', 'Contoso.OrderSystem.Payments')
 $oldApplications = @('Contoso.OrderSystem.Payments', 'Contoso.OrderSystem.Invoices', 'Contoso.OrderSystem.Orders')
 $oldVersions = @('1.0.0', '1.0.0', '1.0.0')
