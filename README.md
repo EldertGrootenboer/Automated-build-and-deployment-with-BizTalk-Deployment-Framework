@@ -58,3 +58,24 @@ Deploy-BizTalkApplication -ApplicationsInOrderOfDeployment $newApplications -Ver
 ```
 
 As you can see, using these PowerShell scripts you can setup scripts for your build and deployment processes very quickly. And by automating all these steps, we will have to spend much less time on builds and deployments, as we will only have to start our scripts, and the rest just goes automatically.
+
+# Support for -WhatIf
+
+As a special bonus, all cmdlets support the PowerShell `-WhatIf` parameter, so you can check what will happen without actually executing code:
+
+```PowerShell
+> > . .\OrderSystemProject_FullDeploy.ps1 -WhatIf
+What if: Performing the operation "Undeploy-BizTalkApplication" on target "Contoso.OrderSystem.Payments (1.0.0)".
+What if: Performing the operation "Undeploy-BizTalkApplication" on target "Contoso.OrderSystem.Invoices (1.0.0)".
+What if: Performing the operation "Undeploy-BizTalkApplication" on target "Contoso.OrderSystem.Orders (1.0.0)".
+What if: Performing the operation "Deploy-BizTalkApplication" on target "Contoso.OrderSystem.Orders (1.1.0)".
+What if: Performing the operation "Deploy-BizTalkApplication" on target "Contoso.OrderSystem.Invoices (1.1.0)".
+What if: Performing the operation "Deploy-BizTalkApplication" on target "Contoso.OrderSystem.Payments (1.1.0)".
+What if: Performing the operation "Restart-IIS" on target "localhost".
+What if: Performing the operation "Restart-HostInstances" on target "localhost".
+```
+
+# Unit Tests
+
+The basic function of the Cmdlets has been tested using `Pester` unit tests. Further additions can be made to this by mocking more functions and validating the correct usage.
+
