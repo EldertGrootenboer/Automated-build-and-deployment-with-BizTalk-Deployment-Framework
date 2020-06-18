@@ -1,12 +1,21 @@
-# Load parameters
-$settings = Import-Csv Settings_DeploymentEnvironment.csv
-foreach ($setting in $settings) {
-    # Directory where BizTalk installation resides
-    if ($setting.'Name;Value'.Split(";")[0].Trim() -eq "bizTalkServerInstallationDirectory") { $bizTalkServerInstallationDirectory = $setting.'Name;Value'.Split(";")[1].Trim() }
 
-    # Database server for the environment
-    if ($setting.'Name;Value'.Split(";")[0].Trim() -eq "databaseServer") { $databaseServer = $setting.'Name;Value'.Split(";")[1].Trim() }
-}
+# Load settings
+$settings = Import-Csv "$PsScriptRoot\..\Settings_DeploymentEnvironment.csv" -Delimiter ';'
+
+# Program Files directory where application should be installed
+$programFilesDirectory = ($settings | Where Name -eq 'programFilesDirectory').Value
+# Suffix as set in in the ProductName section of the BTDF project file. By default this is " for BizTalk".
+$productNameSuffix = ($settings | Where Name -eq '$productNameSuffix').Value
+# Indicator if we should deploy to the BizTalkMgmtDB database from this server. In multi-server environments this should be true on 1 server, and false on the others
+$deployBizTalkMgmtDB = ($settings | Where Name -eq 'deployBizTalkMgmtDB').Value
+# Name of the BTDF environment settings file for this environment.
+$environmentSettingsFileName = ($settings | Where Name -eq 'environmentSettingsFileName').Value
+# Directory where BizTalk installation resides
+$bizTalkServerInstallationDirectory = ($settings | Where Name -eq 'bizTalkServerInstallationDirectory').Value
+# Database server for the environment
+$databaseServer = ($settings | Where Name -eq 'databaseServer').Value
+
+
 
 # Do IIS reset
 function Restart-IIS {

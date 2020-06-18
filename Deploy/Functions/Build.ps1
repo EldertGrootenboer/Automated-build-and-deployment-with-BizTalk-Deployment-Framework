@@ -1,18 +1,16 @@
 # Import general helpers using dot operator
 . "$PsScriptRoot\General.ps1"
 
-# Load parameters
-$settings = Import-Csv Settings_BuildEnvironment.csv
-foreach ($setting in $settings) {
-    # The directory where the BizTalk projects are stored
-    if ($setting.'Name;Value'.Split(";")[0].Trim() -eq "projectsBaseDirectory") { $projectsBaseDirectory = $setting.'Name;Value'.Split(";")[1].Trim() }
+# Load settings
+$settings = Import-Csv "$PsScriptRoot\..\Settings_BuildEnvironment.csv" -Delimiter ';'
 
-    # The directory where the MSI's should be saved to
-    if ($setting.'Name;Value'.Split(";")[0].Trim() -eq "installersOutputDirectory") { $installersOutputDirectory = $setting.'Name;Value'.Split(";")[1].Trim() }
+# The directory where the BizTalk projects are stored
+$projectsBaseDirectory = ($settings | Where Name -eq 'projectsBaseDirectory').Value
+# The directory where the MSI's should be saved to
+$installersOutputDirectory  = ($settings | Where Name -eq 'installersOutputDirectory').Value
+# Directory where Visual Studio resides
+$visualStudioDirectory = ($settings | Where Name -eq 'visualStudioDirectory').Value
 
-    # Directory where Visual Studio resides
-    if ($setting.'Name;Value'.Split(";")[0].Trim() -eq "visualStudioDirectory") { $visualStudioDirectory = $setting.'Name;Value'.Split(";")[1].Trim() }
-}
 
 # Build and create installers for BizTalk application(s)
 function Build-BizTalkInstaller {
